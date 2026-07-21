@@ -54,8 +54,8 @@ The app will be available at http://localhost:8501.
 ### Option 2: Local Python environment
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate  # On Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m streamlit run project_1/app/app.py --server.port 8501 --server.address 0.0.0.0
 ```
