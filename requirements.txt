@@ -3,4 +3,6 @@ pandera
 loguru
 streamlit
 pyarrow
+altair
 pylint
+pytest
