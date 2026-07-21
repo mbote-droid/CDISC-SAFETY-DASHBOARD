@@ -1,0 +1,5 @@
+pandas
+pandera
+loguru
+streamlit
+pyarrow
