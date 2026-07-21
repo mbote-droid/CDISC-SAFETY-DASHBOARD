@@ -8,6 +8,7 @@ class DemographicsSchema:
 
     @classmethod
     def validate(cls, df: pd.DataFrame, lazy: bool = True) -> pd.DataFrame:
+        del lazy
         missing_columns = cls.REQUIRED_COLUMNS - set(df.columns)
         if missing_columns:
             raise ValueError(f"Missing required columns: {sorted(missing_columns)}")

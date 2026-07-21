@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from project_1.data_ingestion.adapters import CSVReader, SASReader, get_reader
-from project_1.data_ingestion.schemas import DM_SCHEMA
+from project_1.data_ingestion.schemas import DMSchema
 from project_1.reporting.quality_reporter import generate_dq_report
 
 
@@ -40,7 +40,7 @@ def test_dm_schema_validates_expected_columns():
         }
     )
 
-    validated = DM_SCHEMA.validate(df, lazy=True)
+    validated = DMSchema.validate(df, lazy=True)
 
     assert validated.shape[0] == 1
     assert validated.loc[0, "SEX"] == "M"

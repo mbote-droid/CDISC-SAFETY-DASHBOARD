@@ -7,13 +7,14 @@ class SchemaValidationError(ValueError):
     """Raised when the DM dataset fails validation."""
 
 
-class DM_SCHEMA:
+class DMSchema:
     """Validation schema for demographics (DM) data."""
 
     REQUIRED_COLUMNS = {"STUDYID", "USUBJID", "AGE", "SEX", "RACE"}
 
     @classmethod
     def validate(cls, df: pd.DataFrame, lazy: bool = True) -> pd.DataFrame:
+        del lazy
         if not isinstance(df, pd.DataFrame):
             raise SchemaValidationError("Input must be a pandas DataFrame")
 

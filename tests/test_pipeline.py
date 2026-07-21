@@ -1,15 +1,17 @@
-from pathlib import Path
-
 import pandas as pd
 import pytest
 
 from project_1.pipelines.ingestion_pipeline import preprocess_data, run_pipeline
 from project_1.reporting.audit_log import AuditLogger
-from project_1.transformations.clinical_transformations import build_adam_adsl, build_sdtm_dm, write_outputs
+from project_1.transformations.clinical_transformations import (
+    build_adam_adsl,
+    build_sdtm_dm,
+    write_outputs,
+)
 
 
 @pytest.fixture
-def sample_dataframe():
+def frame_values():
     return pd.DataFrame(
         {
             "STUDYID": ["ABC"],
@@ -21,8 +23,8 @@ def sample_dataframe():
     )
 
 
-def test_preprocess_data_strips_whitespace(sample_dataframe):
-    cleaned = preprocess_data(sample_dataframe)
+def test_preprocess_data_strips_whitespace(frame_values):  # pylint: disable=redefined-outer-name
+    cleaned = preprocess_data(frame_values)
 
     assert cleaned.loc[0, "RACE"] == "WHITE"
 
@@ -77,23 +79,23 @@ def test_run_pipeline_returns_none_for_invalid_schema(tmp_path, monkeypatch):
     assert (reports_dir / "dm_quality_report.md").exists()
 
 
-def test_build_sdtm_dm_creates_expected_columns(sample_dataframe):
-    sdtm = build_sdtm_dm(sample_dataframe)
+def test_build_sdtm_dm_creates_expected_columns(frame_values):  # pylint: disable=redefined-outer-name
+    sdtm = build_sdtm_dm(frame_values)
 
     assert "DOMAIN" in sdtm.columns
     assert sdtm.loc[0, "AGEU"] == "YEARS"
 
 
-def test_build_adam_adsl_adds_safety_flags(sample_dataframe):
-    adsl = build_adam_adsl(sample_dataframe)
+def test_build_adam_adsl_adds_safety_flags(frame_values):  # pylint: disable=redefined-outer-name
+    adsl = build_adam_adsl(frame_values)
 
     assert adsl.loc[0, "SAFETY"] == "Y"
     assert adsl.loc[0, "TRT01P"] == "PLACEBO"
 
 
-def test_write_outputs_writes_parquet_files(tmp_path, sample_dataframe):
+def test_write_outputs_writes_parquet_files(tmp_path, frame_values):  # pylint: disable=redefined-outer-name
     output_dir = tmp_path / "outputs"
-    outputs = write_outputs(sample_dataframe, output_dir, "dm")
+    outputs = write_outputs(frame_values, output_dir, "dm")
 
     assert outputs["sdtm"].exists()
     assert outputs["adam"].exists()

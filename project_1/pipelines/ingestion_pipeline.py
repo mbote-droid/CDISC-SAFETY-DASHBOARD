@@ -8,7 +8,7 @@ import pandas as pd
 from loguru import logger
 
 from project_1.data_ingestion.adapters import get_reader
-from project_1.data_ingestion.schemas import DM_SCHEMA, SchemaValidationError
+from project_1.data_ingestion.schemas import DMSchema, SchemaValidationError
 from project_1.reporting.audit_log import AuditLogger
 from project_1.reporting.quality_reporter import generate_dq_report
 from project_1.transformations.clinical_transformations import write_outputs
@@ -47,7 +47,7 @@ def run_pipeline(file_name: str) -> dict[str, Path] | None:
     audit_logger.append("pipeline_started", {"source_file": str(input_file)})
 
     logger.add(f"logs/ingestion_{input_file.stem}.log", rotation="10 MB")
-    logger.info(f"Starting ingestion pipeline for {input_file}...")
+    logger.info("Starting ingestion pipeline for %s...", input_file)
 
     try:
         reader = get_reader(input_file)
@@ -56,16 +56,22 @@ def run_pipeline(file_name: str) -> dict[str, Path] | None:
         audit_logger.append("data_read", {"rows": int(len(data))})
 
         preprocessed_data = preprocess_data(data)
-        validated_data = DM_SCHEMA.validate(preprocessed_data, lazy=True)
+        validated_data = DMSchema.validate(preprocessed_data, lazy=True)
         logger.success("Validation passed.")
-        audit_logger.append("validation_succeeded", {"columns": sorted(validated_data.columns.tolist())})
+        audit_logger.append(
+            "validation_succeeded",
+            {"columns": sorted(validated_data.columns.tolist())},
+        )
 
         output_file = staging_path / f"{input_file.stem}.parquet"
         validated_data.to_parquet(output_file, index=False)
         outputs = write_outputs(validated_data, staging_path, input_file.stem)
         outputs["validated"] = output_file
-        audit_logger.append("transformation_completed", {"outputs": {k: str(v) for k, v in outputs.items()}})
-        logger.success(f"Validated data saved to {output_file}")
+        audit_logger.append(
+            "transformation_completed",
+            {"outputs": {k: str(v) for k, v in outputs.items()}},
+        )
+        logger.success("Validated data saved to %s", output_file)
         return outputs
 
     except SchemaValidationError as err:
@@ -81,7 +87,7 @@ def run_pipeline(file_name: str) -> dict[str, Path] | None:
         return None
 
     except Exception as err:  # pragma: no cover - defensive catch-all
-        logger.critical(f"An unexpected error occurred: {err}")
+        logger.critical("An unexpected error occurred: %s", err)
         audit_logger.append("pipeline_error", {"error": str(err)})
         return None
 

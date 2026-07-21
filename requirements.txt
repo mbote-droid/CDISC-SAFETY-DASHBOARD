@@ -3,3 +3,4 @@ pandera
 loguru
 streamlit
 pyarrow
+pylint

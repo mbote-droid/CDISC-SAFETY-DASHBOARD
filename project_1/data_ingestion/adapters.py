@@ -7,6 +7,8 @@ import pandas as pd
 
 
 class DataReader(Protocol):
+    """Protocol for objects that can read tabular data from disk."""
+
     def read(self, path: str | Path) -> pd.DataFrame:
         ...
 
@@ -23,7 +25,7 @@ class SASReader:
 
     def read(self, path: str | Path) -> pd.DataFrame:
         try:
-            import pyreadstat
+            import pyreadstat  # pylint: disable=import-outside-toplevel
         except ImportError as exc:  # pragma: no cover - exercised in tests if dependency missing
             raise ImportError("pyreadstat is required to read SAS files") from exc
 

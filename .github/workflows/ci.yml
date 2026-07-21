@@ -34,6 +34,11 @@ jobs:
           pip install -r requirements.txt
           pip install pytest bandit safety
 
+      - name: Run lint checks
+        run: |
+          python -m pylint project_1 tests \
+            --disable=missing-module-docstring,missing-function-docstring,too-few-public-methods,too-many-arguments,too-many-locals,too-many-branches,too-many-statements,line-too-long,broad-exception-caught
+
       - name: Run unit tests
         run: python -m pytest -q
 
