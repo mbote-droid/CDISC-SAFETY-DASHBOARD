@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "CDISC Safety Dashboard: raw clinical trial data to SDTM, ADaM and safety analytics"
+abstract: "An end-to-end, fault-tolerant clinical trial safety pipeline and interactive dashboard. It converts raw EDC-style demographics, adverse-event and laboratory data into CDISC SDTM (DM, AE, LB) and ADaM (ADSL, ADAE, ADLB) datasets, applies data-quality and conformance rules with quarantine and audit trails, exports SAS XPT v5 transport files, and produces safety tables including treatment-emergent adverse event summaries, risk differences with Newcombe confidence intervals, laboratory shift tables and an eDISH Hy's law screen."
+authors:
+  - family-names: "Mbote"
+    given-names: "Samuel"
+    orcid: "https://orcid.org/0009-0003-2319-8873"
+repository-code: "https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD"
+url: "https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD"
+license: MIT
+version: "1.0.0"
+date-released: "2026-10-08"
+keywords:
+  - "CDISC"
+  - "SDTM"
+  - "ADaM"
+  - "clinical trials"
+  - "drug safety"
+  - "pharmacovigilance"
+  - "biostatistics"
+  - "clinical data management"

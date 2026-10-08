@@ -1,8 +1,8 @@
-pandas
-pandera
-loguru
-streamlit
-pyarrow
-altair
-pylint
-pytest
+# Runtime dependencies for Streamlit Community Cloud / Hugging Face Spaces.
+# The package itself is loaded from ./src by app/streamlit_app.py.
+pandas>=2.2,<4
+numpy>=1.26,<3
+pyarrow>=15
+pyreadstat>=1.2.7
+streamlit>=1.50,<2
+altair>=5,<7

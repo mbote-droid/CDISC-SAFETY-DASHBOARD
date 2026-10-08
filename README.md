@@ -1,110 +1,115 @@
-# 🏥 CDISC-Compliant Clinical Trial Safety Dashboard
+# CDISC Safety Dashboard
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
-[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED.svg)](https://www.docker.com/)
 [![CI](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/ci.yml/badge.svg)](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/ci.yml)
 [![CD](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/cd.yml/badge.svg)](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/cd.yml)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org)
+[![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](#testing-and-quality)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A production-ready Python pipeline and interactive dashboard that transforms raw clinical trial data into CDISC-style outputs for safety monitoring, validation, and reporting.
+An end-to-end clinical trial safety pipeline and interactive dashboard. It turns raw, messy EDC-style exports into
+**CDISC SDTM** (DM, AE, LB) and **ADaM** (ADSL, ADAE, ADLB) datasets, runs data-quality and conformance checks,
+and produces the safety tables and figures a medical monitor or biostatistician reviews: TEAE summaries, SOC/PT
+incidence, risk differences with confidence intervals, lab shift tables and an eDISH plot for Hy's law.
 
-## 🎯 The Business Problem
-Clinical trial teams must monitor safety data continuously, but raw study data is often fragmented, inconsistent, and difficult to validate at scale. Turning that data into standardized, review-ready outputs is a common bottleneck in biopharma analytics workflows.
+> **Synthetic data only.** The built-in study is simulated. This is a portfolio and teaching tool, not a validated
+> system for regulatory submissions or clinical decisions.
 
-## 💡 The Solution
-This project demonstrates a practical end-to-end workflow for clinical data engineering:
+## What it does
 
-1. **Automated ingestion** of raw mock clinical data without modifying source files.
-2. **Strict validation** of DM-style clinical records to catch anomalies early.
-3. **Transformation into SDTM/ADaM-style outputs** for downstream reporting and analysis.
-4. **Interactive visualization** through a Streamlit dashboard for exploratory review.
-5. **Automated quality checks** through CI, linting, and test coverage.
-
-## ⚙️ Tech Stack
-- **Data engineering and validation:** Python, Pandas, Pandera, Loguru
-- **Transformation layer:** custom clinical-data transformation logic
-- **Visualization:** Streamlit
-- **Deployment and automation:** Docker, Docker Compose, GitHub Actions
-
-## 📂 Project Structure
-
-```text
-CDISC-SAFETY-DASHBOARD/
-├── .github/workflows/   # CI/CD automation
-├── data/raw/            # Sample raw clinical data
-├── project_1/           # Core pipeline, ingestion, transformation, and reporting modules
-├── tests/               # Unit tests for validation and pipeline logic
-├── Dockerfile           # Container build instructions
-├── docker-compose.yml   # Local container orchestration
-├── requirements.txt     # Python dependencies
-└── README.md            # Project overview
+```
+raw CSV/Parquet ──► cleaning & quarantine ──► SDTM DM / AE / LB ──► conformance checks
+                                                       │
+                                                       ▼
+            safety tables & figures ◄── ADaM ADSL / ADAE / ADLB ──► XPT v5, Parquet, CSV, define metadata, manifest
 ```
 
-## 🚀 Quickstart
+| Area | Features |
+|---|---|
+| **Data ingestion** | CSV or Parquet; UTF-8/Latin-1; auto-detected delimiters; 200 MB limit; every value read as text so type problems become findings, not crashes |
+| **Cleaning** | 20+ row-level rules; unusable records quarantined with a reason; terminology mapping (e.g. `Male` → `M`); nothing is silently dropped |
+| **SDTM** | DM, AE, LB with USUBJID, `--SEQ`, ISO 8601 dates, study days (no day 0), reference-range indicators, baseline flags |
+| **ADaM** | ADSL (populations, treatment dates, duration, age groups, disposition), ADAE (treatment-emergent flag with 30-day window, first-occurrence flags), ADLB (baseline, change, % change, ratio to ULN) |
+| **Conformance** | Pinnacle 21-style rules: required variables, keys, referential integrity, controlled terminology, ISO 8601, SAS v5 name/label limits |
+| **Safety analytics** | TEAE overview; SOC/PT incidence; risk difference vs placebo with **Newcombe hybrid-score 95% CIs**; lab shift tables; mean change from baseline; eDISH / potential **Hy's law** screen |
+| **Outputs** | SAS **XPT v5** (FDA transport format), Parquet, CSV, define-style JSON metadata, findings report, quarantine files and a **manifest with SHA-256 checksums** of every input and output |
+| **Dashboard** | Streamlit app with demo or upload mode, interactive Altair charts, searchable tables and one-click ZIP download |
+| **Fault tolerance** | Stage isolation (one failing domain never loses the others); DM-only runs work; failures reported as findings; the UI never shows a stack trace |
 
-### Option 1: Docker (recommended)
+## Quick start
 
 ```bash
 git clone https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD.git
 cd CDISC-SAFETY-DASHBOARD
-docker compose up --build
-```
-
-The app will be available at http://localhost:8501.
-
-### Option 2: Local Python environment
-
-```bash
 python -m venv .venv
-source .venv/bin/activate  # On Windows PowerShell: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m streamlit run project_1/app/app.py --server.port 8501 --server.address 0.0.0.0
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e ".[app,dev]"
+
+streamlit run app/streamlit_app.py # dashboard at http://localhost:8501
 ```
 
-### Option 3: Run the pipeline directly
+Command line:
 
 ```bash
-python -c "from project_1.pipelines.ingestion_pipeline import run_pipeline; print(run_pipeline('dm.csv'))"
+cdisc-safety demo --out outputs                        # synthetic study end to end
+cdisc-safety generate --out data/raw --inject-errors   # raw files with realistic data-entry faults
+cdisc-safety run --raw data/raw --out outputs          # run on your own dm_raw/ae_raw/lb_raw files
+cdisc-safety run --raw data/raw --out outputs --strict # exit code 2 if any ERROR finding fires (for pipelines)
 ```
 
-## 🧪 Validation Strategy and Dataset Design
-
-This project's dataset design demonstrates the importance of both correctness and scale. That is why this repository uses two complementary data strategies.
-
-### 1. Small validation dataset: the unit-test style example
-A compact DM-style file with a handful of rows is ideal for showing that the pipeline can catch edge cases clearly and deliberately. A small dataset makes it easy for a reviewer to see anomalies such as:
-- invalid ages
-- unexpected sex values
-- missing or malformed fields
-
-This is valuable because it makes the validation logic easy to inspect and understand quickly. In portfolio terms, it shows that the project is thoughtful about data quality, not just capable of processing data.
-
-### 2. Larger dashboard dataset: the production-style example
-A larger synthetic dataset is necessary to demonstrate how the dashboard behaves in a more realistic setting. A file with 500 to 2,000 rows makes it easier to show:
-- aggregation and summarization
-- filtering by study or demographic variables
-- responsive user experience under realistic data volume
-
-This helps communicate that the project is not only validating data correctly, but also delivering an experience that could plausibly support end-user analysis.
-
-### Recommended approach
-The most effective structure is a dual-dataset design:
-1. Keep a small edge-case file for validation and testing.
-2. Use a larger synthetic file in data/raw for the dashboard experience.
-
-A helper script is included to generate a larger synthetic CSV automatically:
+Docker:
 
 ```bash
-python -c "from project_1.data_generation.generate_large_dataset import generate_large_dataset; generate_large_dataset('data/raw/dm_large.csv', rows=1000)"
+docker compose up --build          # http://localhost:8501
 ```
 
-This approach shows both technical rigor and application-level maturity, which is exactly what hiring managers and reviewers tend to look for.
+## Input format
 
-## 🛡️ Data Privacy and Security
-- This repository uses synthetic mock data only.
-- No real protected health information is included.
-- The Docker build and CI workflow are configured with basic security-conscious practices.
+| File | Required columns | Optional columns |
+|---|---|---|
+| `dm_raw` | SUBJID, SITEID, AGE, SEX, RACE, ARMCD, ARM, TRTSDT, TRTEDT | ETHNIC, COUNTRY, RANDDT, DCSREAS, DTHDT |
+| `ae_raw` | SUBJID, AEDECOD, AEBODSYS, AESTDT, AETOXGR, AESER | AETERM, AEENDT, AESEV, AEREL, AEACN, AEOUT |
+| `lb_raw` | SUBJID, VISITNUM, VISIT, LBDT, LBTESTCD, LBORRES, LBORNRLO, LBORNRHI | LBTEST, LBORRESU |
 
-## ✅ Quality Checks
-- Automated tests with pytest
-- Linting with pylint
-- CI/CD workflows for validation and deployment
+Dates are ISO 8601 (`YYYY-MM-DD`). Planned arms are `PBO`, `DRGA50` and `DRGA100`. The dashboard's demo mode can
+download a ready-made template.
+
+## Outputs
+
+```
+outputs/
+├── sdtm/      dm, ae, lb        (.xpt, .parquet, .csv)
+├── adam/      adsl, adae, adlb  (.xpt, .parquet, .csv)
+├── tables/    demographics, teae_overview, teae_soc_pt, risk_differences, lab_shift, hys_law, lab_mean_change
+├── reports/   findings.csv, quarantine_*.csv
+├── define/    datasets.json     (dataset and variable metadata)
+└── manifest.json                (run ID, versions, status, record counts, SHA-256 of every input and output)
+```
+
+## Testing and quality
+
+* **70 tests**, **98% branch coverage** (CI fails below 90%): unit tests for every module, end-to-end runs,
+  fault-injection runs, stage-failure isolation, XPT round-trips, checksum verification, reproducibility,
+  CLI exit codes and headless dashboard tests with Streamlit's `AppTest`.
+* Statistical methods are checked against published values (Wilson interval; Newcombe 1998 worked example).
+* CI on Python 3.11, 3.12 and 3.13: ruff lint and format, pytest, bandit, pip-audit, CLI smoke test,
+  and a Docker build with a container health check. CD publishes the image to GitHub Container Registry.
+* Performance: 1,500 subjects (about 35,000 lab records) processed in under 1 second; 5,000 subjects in about 3 seconds.
+
+## Deployment
+
+The container honours `$PORT`, so the same image runs on Streamlit Community Cloud, Hugging Face Spaces,
+Google Cloud Run, Render or Fly.io. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+## Documentation
+
+* [HOW_IT_WORKS.md](HOW_IT_WORKS.md): pipeline stages, derivation rules and data-quality rules
+* [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): hosting options with step-by-step instructions
+* [SECURITY.md](SECURITY.md): security model and reporting
+
+## Citation
+
+If you use this software, please cite it using the metadata in [CITATION.cff](CITATION.cff).
+
+## License
+
+MIT © Samuel Mbote

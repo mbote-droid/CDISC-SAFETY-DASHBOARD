@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cdisc-safety-dashboard"
+version = "1.0.0"
+description = "Raw clinical trial data to CDISC SDTM and ADaM datasets, safety tables and an interactive safety dashboard."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Samuel Mbote" }]
+keywords = ["CDISC", "SDTM", "ADaM", "clinical trials", "safety", "pharmacovigilance", "biostatistics"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+dependencies = [
+  "pandas>=2.2,<4",
+  "numpy>=1.26,<3",
+  "pyarrow>=15",
+  "pyreadstat>=1.2.7",
+]
+
+[project.optional-dependencies]
+app = ["streamlit>=1.50,<2", "altair>=5,<7"]
+dev = ["pytest>=8,<9", "pytest-cov>=5,<7", "ruff>=0.6,<1", "bandit>=1.7,<2", "pip-audit>=2.7,<3", "streamlit>=1.50,<2", "altair>=5,<7"]
+
+[project.scripts]
+cdisc-safety = "cdisc_safety.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cdisc_safety"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--strict-markers --cov=cdisc_safety --cov-report=term-missing --cov-fail-under=90"
+
+[tool.coverage.run]
+branch = true
+source = ["cdisc_safety"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "BLE", "C90"]
+ignore = ["S101"]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 180
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B"]
