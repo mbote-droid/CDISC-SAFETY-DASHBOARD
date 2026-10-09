@@ -1,5 +1,6 @@
 # CDISC Safety Dashboard
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23267286.svg)](https://doi.org/10.5281/zenodo.23267286)
 [![CI](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/ci.yml/badge.svg)](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/ci.yml)
 [![CD](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/cd.yml/badge.svg)](https://github.com/mbote-droid/CDISC-SAFETY-DASHBOARD/actions/workflows/cd.yml)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org)
